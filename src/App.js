@@ -12,7 +12,6 @@ import StartScreen from './components/StartScreen';
 import Game from './components/Game';
 import GameOver from './components/GameOver';
 import { act } from '@testing-library/react';
-import { isLabelWithInternallyDisabledControl } from '@testing-library/user-event/dist/utils';
 
 
 
@@ -80,16 +79,16 @@ function App() {
         ...actualGuessedLetters,
         normalizedLetter
       ]);
-    }else if(!letter.includes(normalizedLetter)){
-      setGuessedLetters((actualGuessedLetters) => [
-        ...actualGuessedLetters,
+    }else {
+      setWrongLetters((actualWrongLetters) => [
+        ...actualWrongLetters,
         normalizedLetter,
       ]);
       setGuesses((actualGuesses) => actualGuesses - 1);
-
     }
     
     
+
   };
 
   const clearLetterStates = () => {
