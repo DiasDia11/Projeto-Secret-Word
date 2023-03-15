@@ -2,7 +2,7 @@
 import './App.css';
 
 //React
-import { useCallback, useState, } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 //data
 import { wordsList } from './data/words';
@@ -11,6 +11,8 @@ import { wordsList } from './data/words';
 import StartScreen from './components/StartScreen';
 import Game from './components/Game';
 import GameOver from './components/GameOver';
+import { act } from '@testing-library/react';
+import { isLabelWithInternallyDisabledControl } from '@testing-library/user-event/dist/utils';
 
 
 
@@ -20,6 +22,7 @@ const stages = [
   {id: 3, name: "end"},
 ];
 
+const guessesQty = 3;
 function App() {
   const [gameStage, setGameStage] = useState(stages[0].name);
   const [words] = useState(wordsList);
@@ -30,7 +33,7 @@ function App() {
 
   const [guessedLetters, setGuessedLetters] = useState([]);
   const [wrongLetters, setWrongLetters] = useState([]);
-  const [guesses, setGuesses] = useState(3);
+  const [guesses, setGuesses] = useState(guessesQty);
   const [score, setScore] = useState(0);
 
   const pickWordAndCategory = () => {
@@ -77,19 +80,39 @@ function App() {
         ...actualGuessedLetters,
         normalizedLetter
       ]);
-    }else {
-      setWrongLetters((actualWrongLetters) => [
-        ...actualWrongLetters,
+    }else if(!letter.includes(normalizedLetter)){
+      setGuessedLetters((actualGuessedLetters) => [
+        ...actualGuessedLetters,
         normalizedLetter,
       ]);
+      setGuesses((actualGuesses) => actualGuesses - 1);
+
     }
     
-    console.log(guessedLetters);
-    console.log(wrongLetters);
+    
   };
+
+  const clearLetterStates = () => {
+    setGuessedLetters([]);
+    setWrongLetters([]);
+  }
+
+  useEffect(() =>{
+
+    if(guesses <= 0){
+      // reset all states
+      clearLetterStates();
+      setGameStage(stages[2].name);
+    }
+
+  }, [guesses])
 
   // restart the game
   const retry = () => {
+    setScore(0);
+    setGuesses(guessesQty);
+
+
     setGameStage(stages[0].name) ; 
   }
   console.log(words)
