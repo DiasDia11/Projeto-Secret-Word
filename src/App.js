@@ -35,7 +35,7 @@ function App() {
   const [guesses, setGuesses] = useState(guessesQty);
   const [score, setScore] = useState(0);
 
-  const pickWordAndCategory = () => {
+  const pickWordAndCategory = useCallback(() => {
     // pick a random category
     const categories = Object.keys(words);
     const category = categories[Math.floor(Math.random() * Object.keys(categories).length)];
@@ -44,10 +44,13 @@ function App() {
     const word = words[category][Math.floor(Math.random() * words[category].length)];
 
     return {word, category};
-  }
+  }, [words]);
 
   // starts the game
-  const startGame = () =>{
+  const startGame = useCallback (() =>{
+    // clear all letters
+    clearLetterStates();
+
     // pick word and category   
     const{ word, category} = pickWordAndCategory();
 
@@ -60,7 +63,7 @@ function App() {
     setLetters(wordLetters);
 
     setGameStage(stages[1].name);
-  }
+  }, [pickWordAndCategory]);
 
   // process the letter input
   const verifyLetter = (letter) => {
@@ -74,15 +77,16 @@ function App() {
     }
 
     // push guessed letter or remove a guess
-    if(letter.includes(normalizedLetter)){
+    if(letters.includes(normalizedLetter)){
       setGuessedLetters((actualGuessedLetters) => [
         ...actualGuessedLetters,
         normalizedLetter
       ]);
     }else {
+      
       setWrongLetters((actualWrongLetters) => [
         ...actualWrongLetters,
-        normalizedLetter,
+        normalizedLetter
       ]);
       setGuesses((actualGuesses) => actualGuesses - 1);
     }
@@ -106,6 +110,22 @@ function App() {
 
   }, [guesses])
 
+  // check win condition
+  useEffect(() => {
+
+    const uniqueLetters = [...new Set(letters)];
+
+    // win condition
+    if(guessedLetters.length === uniqueLetters.length){
+      // add score
+      setScore((actualScore) => actualScore += 100);
+
+      // restart game
+      startGame();
+    }
+
+  }, [guessedLetters,letters, startGame])
+
   // restart the game
   const retry = () => {
     setScore(0);
@@ -114,7 +134,7 @@ function App() {
 
     setGameStage(stages[0].name) ; 
   }
-  console.log(words)
+  
   return (
     <div className="App">
       {gameStage === 'start' &&  <StartScreen startGame={startGame}/>}
@@ -127,7 +147,7 @@ function App() {
                                   wrongLetters={wrongLetters}
                                   guesses={guesses}
                                   score={score}/>}
-      {gameStage === 'end' &&  <GameOver retry={retry}/>}
+      {gameStage === 'end' &&  <GameOver retry={retry} score={score}/>}
     </div>
   );
 }
